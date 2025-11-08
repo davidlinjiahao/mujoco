@@ -26,6 +26,7 @@ build/
 # Data and outputs
 trajectories/
 outputs/
+backup_data/
 *.mp4
 *.avi
 *.parquet
