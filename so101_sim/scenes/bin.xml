@@ -1,0 +1,25 @@
+<mujoco>
+  <worldbody>
+    <!-- Target bin (collection area) - LEFT of robot (matches training) -->
+    <body name="bin" pos="0.4 -0.18 0.42">
+      <!-- Bin walls (4 sides) - Yellow/cardboard color to match training -->
+      <!-- All walls have collision enabled with proper friction -->
+      <geom name="bin_bottom" type="box" size="0.08 0.08 0.005" rgba="0.6 0.4 0.2 0.3" mass="0.1"
+            friction="1.0 0.005 0.0001" condim="4" contype="1" conaffinity="1"
+            solimp="0.99 0.99 0.001" solref="0.01 1"/>
+      <geom name="bin_wall_x1" type="box" size="0.005 0.08 0.04" pos="0.075 0 0.04" rgba="0.9 0.7 0.3 0.5" mass="0.05"
+            friction="0.5 0.005 0.0001" condim="4" contype="1" conaffinity="1"
+            solimp="0.99 0.99 0.001" solref="0.01 1"/>
+      <geom name="bin_wall_x2" type="box" size="0.005 0.08 0.04" pos="-0.075 0 0.04" rgba="0.9 0.7 0.3 0.5" mass="0.05"
+            friction="0.5 0.005 0.0001" condim="4" contype="1" conaffinity="1"
+            solimp="0.99 0.99 0.001" solref="0.01 1"/>
+      <geom name="bin_wall_y1" type="box" size="0.08 0.005 0.04" pos="0 0.075 0.04" rgba="0.9 0.7 0.3 0.5" mass="0.05"
+            friction="0.5 0.005 0.0001" condim="4" contype="1" conaffinity="1"
+            solimp="0.99 0.99 0.001" solref="0.01 1"/>
+      <geom name="bin_wall_y2" type="box" size="0.08 0.005 0.04" pos="0 -0.075 0.04" rgba="0.9 0.7 0.3 0.5" mass="0.05"
+            friction="0.5 0.005 0.0001" condim="4" contype="1" conaffinity="1"
+            solimp="0.99 0.99 0.001" solref="0.01 1"/>
+    </body>
+  </worldbody>
+</mujoco>
+

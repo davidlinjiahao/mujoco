@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<!--
+Test different rotations to find correct orientation
+View this with: python3 scripts/view_scene.py scenes/test_rotations.xml
+-->
+<mujoco model="rotation_test">
+  <compiler angle="radian" meshdir="scans"/>
+  
+  <asset>
+    <mesh name="table_scan" file="table.obj" scale="1.5 1.5 1.5"/>
+  </asset>
+  
+  <worldbody>
+    <geom name="floor" type="plane" size="5 5 0.01" rgba="0.9 0.9 0.9 1"/>
+    <light pos="0 0 3" dir="0 0 -1"/>
+    <light pos="2 2 3" dir="-1 -1 -1"/>
+    
+    <!-- TEST 1: No rotation (as-is from OBJ) -->
+    <body name="test1_none" pos="-2 0 0.5">
+      <geom type="mesh" mesh="table_scan" rgba="1 0 0 0.5"/>
+      <site name="label1" pos="0 0 0.3" size="0.02" rgba="1 0 0 1"/>
+    </body>
+    
+    <!-- TEST 2: -90° around X (Y-up → Z-up standard) -->
+    <body name="test2_negX90" pos="0 0 0.5" euler="-1.5708 0 0">
+      <geom type="mesh" mesh="table_scan" rgba="0 1 0 0.5"/>
+      <site name="label2" pos="0 0 0.3" size="0.02" rgba="0 1 0 1"/>
+    </body>
+    
+    <!-- TEST 3: +90° around X (opposite direction) -->
+    <body name="test3_posX90" pos="2 0 0.5" euler="1.5708 0 0">
+      <geom type="mesh" mesh="table_scan" rgba="0 0 1 0.5"/>
+      <site name="label3" pos="0 0 0.3" size="0.02" rgba="0 0 1 1"/>
+    </body>
+    
+    <!-- TEST 4: -90° around Y -->
+    <body name="test4_negY90" pos="-2 2 0.5" euler="0 -1.5708 0">
+      <geom type="mesh" mesh="table_scan" rgba="1 1 0 0.5"/>
+      <site name="label4" pos="0 0 0.3" size="0.02" rgba="1 1 0 1"/>
+    </body>
+    
+    <!-- TEST 5: +90° around Y -->
+    <body name="test5_posY90" pos="0 2 0.5" euler="0 1.5708 0">
+      <geom type="mesh" mesh="table_scan" rgba="1 0 1 0.5"/>
+      <site name="label5" pos="0 0 0.3" size="0.02" rgba="1 0 1 1"/>
+    </body>
+    
+    <!-- TEST 6: -90° around Z -->
+    <body name="test6_negZ90" pos="2 2 0.5" euler="0 0 -1.5708">
+      <geom type="mesh" mesh="table_scan" rgba="0 1 1 0.5"/>
+      <site name="label6" pos="0 0 0.3" size="0.02" rgba="0 1 1 1"/>
+    </body>
+  </worldbody>
+</mujoco>
+

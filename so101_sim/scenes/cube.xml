@@ -1,0 +1,18 @@
+<mujoco>
+  <worldbody>
+    <!-- Cube to pick (freejoint allows 6-DOF motion) - Half size: 0.0125m - RIGHT of robot (matches training) -->
+    <!-- Starting JUST ABOVE table surface to avoid initial contact issues -->
+    <body name="cube" pos="0.4 0.18 0.435">
+      <freejoint name="cube_freejoint"/>
+      <!-- Very light cube (0.025kg = 25g) - easy to grip and hold -->
+      <!-- High friction (2.0) with softer contacts for better grip stability -->
+      <geom name="cube_geom" type="box" size="0.0125 0.0125 0.0125" rgba="1 1 1 1" mass="0.025"
+            friction="2.0 0.2 0.01" 
+            condim="4"
+            contype="1" conaffinity="1"
+            solimp="0.98 0.99 0.001 0.5 2" 
+            solref="0.01 1"/>
+      <site name="cube_center" pos="0 0 0" size="0.005" rgba="0 1 0 0.5"/>
+    </body>
+  </worldbody>
+</mujoco>

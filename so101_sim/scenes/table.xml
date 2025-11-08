@@ -1,0 +1,32 @@
+<mujoco>
+  <!-- Physics settings -->
+  <!-- Newton solver with elliptic cones + noslip solver to prevent gripper slip -->
+  <option timestep="0.001" 
+          solver="Newton" 
+          iterations="100" 
+          tolerance="1e-10" 
+          cone="elliptic"
+          noslip_iterations="20"
+          noslip_tolerance="1e-6"
+          gravity="0 0 -9.81"/>
+  
+  <worldbody>
+    <!-- Ground plane -->
+    <geom name="floor" type="plane" size="3 3 0.01" rgba="0.9 0.9 0.9 1" 
+          friction="1.0 0.005 0.0001" condim="3" contype="1" conaffinity="1"/>
+    <light pos="0 0 2" dir="0 0 -1" diffuse="0.8 0.8 0.8"/>
+    
+    <!-- Table (fixed, heavy to prevent movement) -->
+    <body name="table" pos="0.4 0 0.4">
+      <geom name="table_top" type="box" size="0.4 0.4 0.02" rgba="0.8 0.6 0.4 1" 
+            mass="50" friction="1.5 0.005 0.0001" condim="4" 
+            contype="1" conaffinity="1"
+            solimp="0.99 0.99 0.001" solref="0.01 1"/>
+      <geom name="table_leg1" type="cylinder" size="0.02 0.4" pos="0.35 0.35 -0.4" rgba="0.6 0.4 0.2 1" mass="5" contype="1" conaffinity="1"/>
+      <geom name="table_leg2" type="cylinder" size="0.02 0.4" pos="0.35 -0.35 -0.4" rgba="0.6 0.4 0.2 1" mass="5" contype="1" conaffinity="1"/>
+      <geom name="table_leg3" type="cylinder" size="0.02 0.4" pos="-0.35 0.35 -0.4" rgba="0.6 0.4 0.2 1" mass="5" contype="1" conaffinity="1"/>
+      <geom name="table_leg4" type="cylinder" size="0.02 0.4" pos="-0.35 -0.35 -0.4" rgba="0.6 0.4 0.2 1" mass="5" contype="1" conaffinity="1"/>
+    </body>
+  </worldbody>
+</mujoco>
+

@@ -1,0 +1,45 @@
+<mujoco>
+  <worldbody>
+    <!-- ========================================== -->
+    <!-- CAMERA 1: "UP" VIEW (top-down-ish angle) -->
+    <!-- ========================================== -->
+    <body name="tripod_base_up" pos="0.970 -0.017 0.810">
+      <!-- Tripod leg (simplified as single pole) -->
+      <geom type="capsule"
+            fromto="0 0 0  0 0 0.20"
+            size="0.012"
+            rgba="0.2 0.2 0.2 1"
+            contype="0"
+            conaffinity="0"/>
+
+      <!-- Camera mount body (at top of tripod) -->
+      <body name="camera_mount_up" pos="0 0 0.20">
+        <!-- Small camera body representation (2.5cm cube) -->
+        <geom type="box"
+              size="0.025 0.015 0.012"
+              rgba="0.1 0.1 0.1 1"
+              contype="0"
+              conaffinity="0"/>
+
+        <!--
+        Logitech C920 camera - "UP" view (overhead of workspace)
+        - fovy: 43° vertical FOV
+        - Positioned at [0.97, -0.017, 1.01] looking down at workspace [0.4, 0, 0.45]
+        - xyaxes calculated for horizontal orientation (horizon parallel to table)
+        - X-axis (right in image), Y-axis (up in image)
+        -->
+        <camera name="c920"
+                mode="fixed"
+                fovy="43"
+                pos="0 0 0"
+                xyaxes="0.030 1.000 0.000  -0.700 0.021 0.713"/>
+
+        <site name="c920_optical_center"
+              pos="0 0 0"
+              rgba="0 0 1 0.5"
+              size="0.003"
+              type="sphere"/>
+      </body>
+    </body>
+  </worldbody>
+</mujoco>

@@ -1,0 +1,28 @@
+# Core MuJoCo and simulation
+mujoco>=3.0.0
+mujoco-python-viewer>=0.1.4
+gymnasium>=0.29.0
+numpy>=1.24.0
+
+# Data recording and LeRobot integration
+lerobot==0.3.3  # v2.1 format (separate episode files) - proven stable for training
+opencv-python>=4.8.0
+pillow>=10.0.0
+pyyaml>=6.0
+
+# Deep learning
+torch>=2.0.0
+transformers>=4.30.0
+
+# Utilities
+tyro>=0.5.0
+tqdm>=4.65.0
+rich>=13.0.0
+websockets>=12.0
+pydantic>=2.0.0
+fastapi>=0.104.0
+uvicorn>=0.24.0
+
+# Training and logging (optional)
+tensorboard>=2.15.0
+wandb>=0.16.0

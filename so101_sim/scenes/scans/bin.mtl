@@ -1,0 +1,6 @@
+newmtl Material
+map_Kd bin_textures/2ecec3d569cf0bb8c324809437592949.jpg
+norm bin_textures/6e252c548606a56517982a8aa7be7091.jpg
+map_ao bin_textures/c6a28cb90baa2dd1d2c4b33ed7428210.jpg
+map_Pr bin_textures/1b5faa846f6b6a589f4b9fa083b02336.jpg
+Pr 1.00

@@ -1,0 +1,6 @@
+newmtl Material
+map_Kd cube_textures/bba298700b59018b0f5c367f53720ff5.jpg
+norm cube_textures/40eb72ba8c581c16a5801992d4992e60.jpg
+map_ao cube_textures/ce48c6bd35e80e7f20ae81d216b20720.jpg
+map_Pr cube_textures/0d7b1730022d4728b5b8f34122a2865d.jpg
+Pr 1.00

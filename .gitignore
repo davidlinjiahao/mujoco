@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Data and outputs
+trajectories/
+outputs/
+*.mp4
+*.avi
+*.parquet
+*.h5
+*.hdf5
+*.pkl
+*.pickle
+
+# Logs
+*.log
+logs/
+
+# Environment
+.env.local
+*.local
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
+temp/
+
+# LeRobot cache (data stored in HuggingFace cache)
+lerobot_batch_*/

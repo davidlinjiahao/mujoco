@@ -1,0 +1,73 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# MuJoCo temp files
+temp_*.xml
+
+# Trajectory data (can be large)
+trajectories/**/*.yaml
+trajectories/**/*.mp4
+!trajectories/.gitkeep
+
+# Logs
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Temporary merged XML files
+scenes/_merged_*.xml
+models/_merged_*.xml
+_merged_*.xml
+
+# Trained models (large files)
+models/**/*.pt
+models/**/*.pth
+models/**/*.zip
+models/**/checkpoints/
+models/run_*/
+
+# Training outputs (checkpoints, logs, etc.)
+outputs/
+training_*.log
+
+# Evaluation results
+runs/
+
+# Downloaded models (large files)
+smolvla/
+
+# Training videos (large)
+training_videos/
+
+# Debug/diagnostic tools and outputs (NOT part of core pipeline)
+adjust_camera.py
+debug_camera.py
+debug_cameras.py
+diagnose_camera.py
+diagnose_model_output.py
+camera_*.png
+training_frame_*.png
+diagnostic_report.*
+_debug*.xml
