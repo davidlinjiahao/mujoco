@@ -121,7 +121,10 @@
       <geom type="mesh" mesh="cube_scan" material="cube_material"
             mass="0.025"
             friction="2.0 0.2 0.01"
-            contype="1" conaffinity="1"/>
+            condim="4"
+            contype="1" conaffinity="1"
+            solimp="0.98 0.99 0.001 0.5 2"
+            solref="0.01 1"/>
     </body>
 
     <!-- ========================================== -->

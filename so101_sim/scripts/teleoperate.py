@@ -239,6 +239,7 @@ def print_startup_banner(args):
     print("="*80)
     print(f"Leader port: {args.leader_port}")
     print(f"Leader ID: {args.leader_id}")
+    print(f"Environment: {args.env}")
     print(f"Control frequency: {args.hz} Hz")
     print(f"Recording: {'Enabled' if args.record else 'Disabled'}")
     print("="*80 + "\n")
@@ -328,11 +329,13 @@ def main():
     parser = argparse.ArgumentParser(description="Leader arm to MuJoCo bridge")
     parser.add_argument("--leader-port", required=True, help="Leader arm USB port (e.g., /dev/tty.usbmodem58760431551)")
     parser.add_argument("--leader-id", default="my_leader_arm", help="Leader arm calibration ID")
-    parser.add_argument("--scene", default=None, help="Complete scene XML (e.g., scenes/grounded_scene.xml)")
-    parser.add_argument("--arm-xml", default="scenes/so_arm.xml", help="Robot model XML (if not using --scene)")
+    parser.add_argument("--env", type=str, default="base_sim", choices=["base_sim", "grounded_sim"],
+                       help="Environment type: base_sim (merged XMLs) or grounded_sim (complete scene)")
+    parser.add_argument("--scene", default=None, help="Complete scene XML (overrides --env if specified)")
+    parser.add_argument("--arm-xml", default="scenes/so_arm.xml", help="Robot model XML (used only for base_sim)")
     parser.add_argument("--scene-xmls", nargs="+", 
                        default=["scenes/table.xml", "scenes/cube.xml", "scenes/bin.xml", "scenes/camera_c920.xml"],
-                       help="Scene XML files (if not using --scene)")
+                       help="Scene XML files (used only for base_sim)")
     parser.add_argument("--render", action="store_true", help="Show MuJoCo viewer")
     parser.add_argument("--record", action="store_true", help="Enable trajectory recording")
     parser.add_argument("--hz", type=float, default=30.0, help="Control frequency (Hz)")
@@ -349,12 +352,17 @@ def main():
     # Load MuJoCo scene  
     print("🔧 Loading MuJoCo scene...")
     if args.scene:
-        # Use complete scene file directly
+        # Use explicitly specified scene file (overrides --env)
         scene_path = args.scene
         print(f"   Using complete scene: {scene_path}")
         model = mujoco.MjModel.from_xml_path(scene_path)
+    elif args.env == "grounded_sim":
+        # Use complete grounded scene file
+        scene_path = "scenes/grounded_scene.xml"
+        print(f"   Using grounded scene: {scene_path}")
+        model = mujoco.MjModel.from_xml_path(scene_path)
     else:
-        # Use legacy merge approach
+        # Use base_sim with merged XMLs
         merged_xml = merge_xml_files([args.arm_xml] + args.scene_xmls)
         model = mujoco.MjModel.from_xml_path(merged_xml)
     

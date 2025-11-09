@@ -27,6 +27,9 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 import mujoco
 import mujoco.viewer
 
+# Import utility functions
+from utilities.mujoco_utils import reset_cube_position, randomize_cube_position
+
 try:
     import cv2
     CV2_AVAILABLE = True
@@ -69,30 +72,53 @@ def merge_xml_files(xml_files, output_path="scenes/_merged_deploy_lerobot.xml"):
     return str(output_path)
 
 
-def reset_cube_position(model, data, position=[0.4, 0.18, 0.435]):
-    """Reset cube to starting position"""
-    cube_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "cube")
-    if cube_id >= 0:
-        cube_qpos_idx = 6
-        data.qpos[cube_qpos_idx:cube_qpos_idx+3] = position
-        data.qpos[cube_qpos_idx+3:cube_qpos_idx+7] = [1, 0, 0, 0]
-        data.qvel[cube_qpos_idx:cube_qpos_idx+6] = 0
-        mujoco.mj_forward(model, data)
-        return True
-    return False
-
-
-def randomize_cube_position(model, data, base_position=[0.4, 0.18, 0.435], jitter_m=0.02):
-    """Randomize cube position"""
-    random_offset = np.random.uniform(-jitter_m, jitter_m, size=3)
-    random_offset[2] = 0  # Keep Z constant
-    new_position = np.array(base_position) + random_offset
-    return reset_cube_position(model, data, new_position)
-
-
-def is_cube_in_bin(cube_pos, bin_aabb_min=[0.32, -0.28, 0.42], bin_aabb_max=[0.48, -0.12, 0.50]):
-    """Check if cube is in target bin"""
+def is_cube_in_bin(cube_pos, env_type="grounded_sim"):
+    """
+    Check if cube is in target bin using environment-specific boundaries
+    
+    Args:
+        cube_pos: [x, y, z] position of cube
+        env_type: "base_sim" or "grounded_sim"
+    
+    Returns:
+        bool: True if cube is in bin
+    """
+    if env_type == "grounded_sim":
+        # Mesh bin boundaries (from scanned bin mesh)
+        # Center: [0.495330, -0.193083, 0.420000]
+        bin_aabb_min = [0.401, -0.295, 0.420]
+        bin_aabb_max = [0.590, -0.091, 0.520]
+    else:  # base_sim
+        # Simple box bin boundaries (from bin.xml)
+        # Center: [0.4, -0.18, 0.42], size: [0.08, 0.08, 0.04]
+        bin_aabb_min = [0.320, -0.260, 0.420]
+        bin_aabb_max = [0.480, -0.100, 0.480]
+    
     return all(bin_aabb_min[i] <= cube_pos[i] <= bin_aabb_max[i] for i in range(3))
+
+
+def is_cube_out_of_reach(cube_pos, center=[0.4, 0.0, 0.42], max_radius=0.35):
+    """
+    Check if cube has fallen too far from the reachable workspace
+    
+    Args:
+        cube_pos: Current cube position [x, y, z]
+        center: Center of reachable workspace
+        max_radius: Maximum reachable distance (meters)
+    
+    Returns:
+        bool: True if cube is out of reach
+    """
+    # Calculate horizontal distance from workspace center
+    dx = cube_pos[0] - center[0]
+    dy = cube_pos[1] - center[1]
+    horizontal_dist = np.sqrt(dx**2 + dy**2)
+    
+    # Also check if it fell off the table (z < 0.3)
+    if cube_pos[2] < 0.3:
+        return True
+    
+    return horizontal_dist > max_radius
 
 
 def capture_camera_frame(model, data, camera_name="c920", width=640, height=480):
@@ -157,11 +183,19 @@ class LeRobotPolicyWrapper:
             action: (6,) numpy array of joint positions
         """
         with torch.no_grad():
-            # Ensure tensors are on correct device
-            obs = {
-                k: v.to(self.device) if isinstance(v, torch.Tensor) else v
-                for k, v in observation.items()
-            }
+            # Convert numpy arrays to tensors and move to device
+            obs = {}
+            for k, v in observation.items():
+                if isinstance(v, torch.Tensor):
+                    obs[k] = v.to(self.device)
+                else:
+                    # Convert numpy to tensor (float32 for MPS compatibility)
+                    if v.dtype == np.float64:
+                        v = v.astype(np.float32)
+                    elif v.dtype == np.uint8:
+                        # Images are uint8, convert to float32 and normalize to [0, 1]
+                        v = v.astype(np.float32) / 255.0
+                    obs[k] = torch.from_numpy(v).to(self.device)
             
             # Add batch dimension if needed
             for key in obs:
@@ -188,14 +222,16 @@ class LeRobotPolicyWrapper:
 def main():
     parser = argparse.ArgumentParser(description="Deploy LeRobot policy in MuJoCo simulation")
     parser.add_argument("--policy-path", required=True, help="Path to trained policy checkpoint")
-    parser.add_argument("--arm-xml", default="scenes/so_arm.xml", help="Robot model XML")
+    parser.add_argument("--env", type=str, default="base_sim", choices=["base_sim", "grounded_sim"],
+                       help="Environment type: base_sim (merged XMLs) or grounded_sim (complete scene)")
+    parser.add_argument("--arm-xml", default="scenes/so_arm.xml", help="Robot model XML (used only for base_sim)")
     parser.add_argument("--scene-xmls", nargs="+",
                        default=["scenes/table.xml", "scenes/cube.xml", "scenes/bin.xml", "scenes/camera_c920.xml"],
-                       help="Scene XML files")
+                       help="Scene XML files (used only for base_sim)")
     parser.add_argument("--render", action="store_true", help="Show MuJoCo viewer")
     parser.add_argument("--record", action="store_true", help="Record videos")
     parser.add_argument("--episodes", type=int, default=10, help="Number of episodes to run")
-    parser.add_argument("--max-steps", type=int, default=500, help="Max steps per episode")
+    parser.add_argument("--max-steps", type=int, default=1000, help="Max steps per episode")
     parser.add_argument("--hz", type=float, default=10.0, help="Control frequency (Hz)")
     parser.add_argument("--device", type=str, default="mps", choices=["mps", "cuda", "cpu"],
                        help="Device for policy inference")
@@ -208,6 +244,7 @@ def main():
     print("LEROBOT POLICY DEPLOYMENT IN MUJOCO SIMULATION")
     print("="*80)
     print(f"Policy: {args.policy_path}")
+    print(f"Environment: {args.env}")
     print(f"Episodes: {args.episodes}")
     print(f"Control frequency: {args.hz} Hz")
     print(f"Device: {args.device}")
@@ -218,8 +255,15 @@ def main():
     
     # Load MuJoCo scene
     print("🔧 Loading MuJoCo scene...")
-    merged_xml = merge_xml_files([args.arm_xml] + args.scene_xmls)
-    model = mujoco.MjModel.from_xml_path(merged_xml)
+    if args.env == "grounded_sim":
+        # Use complete grounded scene file
+        scene_path = "scenes/grounded_scene.xml"
+        print(f"   Using grounded scene: {scene_path}")
+        model = mujoco.MjModel.from_xml_path(scene_path)
+    else:
+        # Use base_sim with merged XMLs
+        merged_xml = merge_xml_files([args.arm_xml] + args.scene_xmls)
+        model = mujoco.MjModel.from_xml_path(merged_xml)
     data = mujoco.MjData(model)
     print(f"✅ MuJoCo loaded\n")
     
@@ -305,17 +349,26 @@ def main():
             if args.record:
                 video_frames.append(rgb_frame)
             
-            # Check success
+            # Check success IMMEDIATELY
             cube_pos = data.xpos[cube_body_id].copy()
-            if is_cube_in_bin(cube_pos):
+            if is_cube_in_bin(cube_pos, env_type=args.env):
                 success = True
                 print(f"\n✅ SUCCESS at step {step}!")
                 print(f"   Cube final: [{cube_pos[0]:.3f}, {cube_pos[1]:.3f}, {cube_pos[2]:.3f}]")
                 break
             
-            # Print status
-            if step % 50 == 0:
-                print(f"Step {step:3d}/{args.max_steps} | Cube: [{cube_pos[0]:.3f}, {cube_pos[1]:.3f}, {cube_pos[2]:.3f}]")
+            # Check if cube is out of reach - auto-reset to give policy another chance
+            if is_cube_out_of_reach(cube_pos):
+                print(f"\n🔄 Cube out of reach at step {step} - resetting")
+                reset_cube_position(model, data)
+                # Give robot a moment to adjust
+                for _ in range(10):
+                    mujoco.mj_step(model, data)
+                continue
+            
+            # Print status more frequently
+            if step % 20 == 0:
+                print(f"Step {step:4d}/{args.max_steps} | Cube: [{cube_pos[0]:.3f}, {cube_pos[1]:.3f}, {cube_pos[2]:.3f}]", flush=True)
             
             # Maintain control rate
             elapsed = time.time() - step_start
@@ -377,13 +430,20 @@ def main():
     # Save results
     results_dir = Path("runs")
     results_dir.mkdir(exist_ok=True)
-    results_path = results_dir / f"eval_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    
+    # Extract model name from policy path for filename
+    policy_name = Path(args.policy_path).parent.name if Path(args.policy_path).parent.name != "pretrained_model" else Path(args.policy_path).parent.parent.name
+    results_path = results_dir / f"eval_{args.env}_{policy_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
     
     with open(results_path, 'w') as f:
         json.dump({
             'policy_path': str(args.policy_path),
+            'environment': args.env,
             'timestamp': datetime.now().isoformat(),
             'success_rate': success_rate,
+            'mean_time': mean_time,
+            'mean_steps': mean_steps,
+            'episodes': len(results),
             'results': results
         }, f, indent=2)
     
